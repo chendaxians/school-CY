@@ -1,8 +1,10 @@
 import requests
 import socket
 import tkinter
-import os
-import getpass
+import re
+from os import path, mkdir, chdir
+from getpass import getuser
+
 
 
 # 获取本机地址
@@ -15,17 +17,26 @@ def get_host_ip():
     finally:
         s.close()
 
+
     return ip
 
 
 # 检测初始化用户文件夹和切换工作区
 
 def test_user():
-    path = 'C:\\Users\\' + getpass.getuser() + '\\Documents\\school'
-    he_exists = os.path.exists(path)
-    if not he_exists:
-        os.mkdir(path)
-        os.chdir(path)
+    #检测文件夹和文件
+    my_path = 'C:\\Users\\' + getuser() + '\\Documents\\school'
+    my_ts = 'C:\\Users\\' + getuser() + '\\Documents\\school\\my_user.txt'
+    he_exists = path.exists(my_path)
+    ts_exists = path.exists(my_ts)
+
+    if not (he_exists and ts_exists):
+        try:
+            mkdir(my_path)
+        except(FileExistsError):
+            chdir(my_path)
+
+        chdir(my_path)
         print("第一次初始化\n")
         a = input("请输入学号\n")
         a = 'XYGY_S' + a + '@SCITC'
@@ -37,7 +48,7 @@ def test_user():
 
     else:
         print('欢迎回来')
-        os.chdir(path)
+        chdir(my_path)
         return 222
 
 
@@ -69,20 +80,27 @@ Date = {
     'pageid': '1',
     'userId': '',
     'passwd': ''}
-test_user()
-user_list = get_user()
+my_ip = get_host_ip()
 
-Date['userId'] = user_list[0]
-Date['passwd'] = user_list[1]
-now = requests.post(url, Date, headrs)
+if not re.match(r'192.168', my_ip):
 
-# 测试百度链接,chengegewoaini
-baidu = requests.get('https://baidu.com')
-if baidu.status_code == 200:
-    print('网络成功连接')
-    print('您的IP:' + get_host_ip())
+    test_user()
+    user_list = get_user()
+
+    Date['userId'] = user_list[0]
+    Date['passwd'] = user_list[1]
+    now = requests.post(url, Date, headrs)
+
+    # 测试百度链接,chengegewoaini
+    baidu = requests.get('https://baidu.com')
+    if baidu.status_code == 200:
+        print('网络成功连接')
+        print('您的IP:' + get_host_ip())
+
+    else:
+        print('无网络请检查插口或无线调制器')
+
+    input('任意输入退出')
 
 else:
-    print('无网络请检查插口或无线调制器')
-
-input('任意输入退出')
+    print('多层内网暂不支持啊,请联系chengege定制')
