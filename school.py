@@ -52,6 +52,12 @@ def test_user():
         return 222
 
 
+# 手动获取路由器ip/滑稽
+def get_rout_ip():
+    print('请将路由器设为静态ip:172.25.33.196\n')
+    input('下一步请按任意键')
+    return 'http://10.10.11.14/webauth.do?wlanuserip=172.25.33.196&wlanacname=XF_BRAS'
+
 # 获取用户账号密码
 def get_user():
     with open('my_user.txt', 'r') as f:
@@ -75,32 +81,29 @@ headrs = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36}'}
 
 url = 'http://10.10.11.14/webauth.do?wlanuserip=' + get_host_ip() + '&wlanacname=XF_BRAS'
-
 Date = {
     'pageid': '1',
     'userId': '',
     'passwd': ''}
 my_ip = get_host_ip()
 
+test_user()
+user_list = get_user()
+
+Date['userId'] = user_list[0]
+Date['passwd'] = user_list[1]
 if not re.match(r'192.168', my_ip):
-
-    test_user()
-    user_list = get_user()
-
-    Date['userId'] = user_list[0]
-    Date['passwd'] = user_list[1]
     now = requests.post(url, Date, headrs)
+else:
 
-    # 测试百度链接,chengegewoaini
-    baidu = requests.get('https://baidu.com')
-    if baidu.status_code == 200:
-        print('网络成功连接')
-        print('您的IP:' + get_host_ip())
-
-    else:
-        print('无网络请检查插口或无线调制器')
-
-    input('任意输入退出')
+    now = requests.post(get_rout_ip(), Date, headrs)
+# 测试百度链接,chengegewoaini
+baidu = requests.get('https://baidu.com')
+if baidu.status_code == 200:
+    print('网络成功连接')
+    print('您的IP:' + get_host_ip())
 
 else:
-    print('多层内网暂不支持啊,请联系chengege定制')
+    print('无网络请检查插口或无线调制器')
+
+input('任意输入退出')
