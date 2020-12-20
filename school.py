@@ -9,16 +9,10 @@ from getpass import getuser
 
 
 def test():
-
-    baidu = requests.get('https://baidu.com', proxies=proxies)
-    if baidu.status_code == 200:
-        print('网络成功连接')
-
-
-
-    else:
+    try:
+        requests.get('https://baidu.com', proxies=proxies,timeout=3)
+    except:
         print('无网络请检查插口或无线调制器')
-
         post_cy()
 
 
@@ -50,6 +44,17 @@ def start_loop(loop):
     loop.run_forever()
 
 async def net_ready():
+    my_ts = 'C:\\Users\\' + getuser() + '\\Documents\\school\\my_user.txt'
+    global el1,el2,statu1
+    statu1=0
+    try:
+        with open(my_ts) as fp:
+            user = fp.readlines()
+            fp.close()
+        el1=user[0]
+        el2=user[1]
+    except:
+        pass
     while (1):
         test()
         await asyncio.sleep(5)
@@ -109,6 +114,7 @@ def inter(e1, e2, statu):
     el2=e2
     statu1=statu
     post_cy()
+
 
 
 def post_cy():
