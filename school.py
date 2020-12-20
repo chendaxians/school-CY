@@ -2,61 +2,98 @@ import requests
 import socket
 import tkinter
 import re
+import asyncio
+import threading
 from os import path, mkdir, chdir
 from getpass import getuser
 
 
+def test():
+
+    baidu = requests.get('https://baidu.com', proxies=proxies)
+    if baidu.status_code == 200:
+        print('网络成功连接')
+
+
+
+    else:
+        print('无网络请检查插口或无线调制器')
+
+        post_cy()
+
+
 
 # 获取本机地址
-
+proxies = {'http': None, 'https': None}
 def get_host_ip():
-    try:
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.connect(('8.8.8.8', 80))
-        ip = s.getsockname()[0]
-    finally:
-        s.close()
 
+    html = requests.get('http://1.1.1.1',proxies=proxies,verify=False)
+    try:
+        ips = re.findall(r'\d+.\d+.\d+.\d+',html.url)
+        ip = ips[1]
+    except:
+        ip=''
+        pass
     return ip
 
 
+
+
+def init_timer_loop():
+    new_loop = asyncio.new_event_loop()
+    t = threading.Thread(target=start_loop, args=(new_loop,))  # 开启一个线程，在线程中开启一个loop
+    t.start()
+    asyncio.run_coroutine_threadsafe(net_ready(), new_loop)  # 在线程的loop中加入协程
+
+def start_loop(loop):
+    asyncio.set_event_loop(loop)
+    loop.run_forever()
+
+async def net_ready():
+    while (1):
+        test()
+        await asyncio.sleep(5)
+
+
 # 检测初始化用户文件夹和切换工作区
-
-
-def test_user(id, pas):
+def test_user(id, pas,statu):
     # 检测文件夹和文件
     my_path = 'C:\\Users\\' + getuser() + '\\Documents\\school'
+    my_tcs = 'C:\\Users\\' + getuser() + '\\Documents\\school\\my_user_cy.txt'
     my_ts = 'C:\\Users\\' + getuser() + '\\Documents\\school\\my_user.txt'
-    he_exists = path.exists(my_path)
-    ts_exists = path.exists(my_ts)
 
-    if not (he_exists and ts_exists):
-        try:
-            mkdir(my_path)
-        except(FileExistsError):
-            chdir(my_path)
 
+
+    try:
+        mkdir(my_path)
+    except(FileExistsError):
         chdir(my_path)
-        print("第一次初始化\n")
-        a = id
+
+    chdir(my_path)
+    print("第一次初始化\n")
+    a = id
+    if(statu==1):
         a = 'XYGY_S' + a + '@SCITC'
-        b = pas
-        with open('my_user.txt', 'a+') as f:
-            f.write(a + '\n')
-            f.write(b)
-        return 111
+    b = pas
+    with open('my_user_cy.txt', 'w+') as f:
+        f.write(a)
+        f.write(b)
+        f.seek(0,0)
+        info = f.read()
+        with open('my_user.txt','w') as fb:
+            fb.write(info)
+            fb.close()
+            f.close()
+    return 111
 
-    else:
-        print('欢迎回来')
-        chdir(my_path)
-        return 222
+
 
 
 # 手动获取路由器ip/滑稽
 def get_rout_ip():
-    print('请将路由器设为静态ip:172.25.33.196\n')
-    input('下一步请按任意键')
-    return 'http://10.10.11.14/webauth.do?wlanuserip=172.25.33.196&wlanacname=XF_BRAS'
+
+
+    return 'http://10.10.11.14/webauth.do?wlanuserip=' + get_host_ip() +'&wlanacname=XF_BRAS'
 
 
 # 获取用户账号密码
@@ -65,8 +102,16 @@ def get_user():
         user = f.readlines()
     return user
 
+def inter(e1, e2, statu):
+    global  el1, el2, statu1
 
-def inter(e1, e2):
+    el1=e1
+    el2=e2
+    statu1=statu
+    post_cy()
+
+
+def post_cy():
     headrs = {
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
         'Accept-Encoding': 'gzip, deflate',
@@ -87,23 +132,12 @@ def inter(e1, e2):
         'userId': '',
         'passwd': ''}
 
-    test_user(e1, e2)
+    test_user(el1, el2, statu1)
     user_list = get_user()
 
     Date['userId'] = user_list[0]
     Date['passwd'] = user_list[1]
-    my_ip = get_host_ip()
 
-    if not re.match(r'192.168', my_ip):
-        now = requests.post(url, Date, headrs)
-    else:
+    requests.post(url, Date, headrs)
+    test()
 
-        now = requests.post(get_rout_ip(), Date, headrs)
-
-    baidu = requests.get('https://baidu.com')
-    if baidu.status_code == 200:
-        print('网络成功连接')
-        print('您的IP:' + get_host_ip())
-
-    else:
-        print('无网络请检查插口或无线调制器')
